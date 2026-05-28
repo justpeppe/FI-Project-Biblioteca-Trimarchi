@@ -28,56 +28,34 @@ int stampa_menu()
     return scelta;
 }
 
-int is_libro_in_prestito(persone lista_utenti, libro libro_da_controllare)
+void inserisci_input_e_converti_in_maiuscolo(char *buffer, int size)
 {
-    while (lista_utenti != NULL)
-    {
-        prestiti *p_lista_prestiti = get_prestiti_della_persona(lista_utenti->p);
-        if (cerca_prestito_nella_lista_per_libro(*p_lista_prestiti, libro_da_controllare) != NULL)
-        {
-            return 1;
-        }
-        lista_utenti = lista_utenti->successivo;
-    }
-    return 0;
-}
+    char ch;
+    while ((ch = getchar()) != '\n' && ch != EOF)
+        ;
 
-persona trova_persona_per_libro_in_prestito(persone lista_utenti, libro libro_cercato)
-{
-    while (lista_utenti != NULL)
+    fgets(buffer, size, stdin);
+    buffer[strcspn(buffer, "\n")] = 0; // Rimuove il newline
+
+    for (int i = 0; buffer[i]; i++)
     {
-        prestiti *p_lista_prestiti = get_prestiti_della_persona(lista_utenti->p);
-        if (p_lista_prestiti != NULL)
-        {
-            if (cerca_prestito_nella_lista_per_libro(*p_lista_prestiti, libro_cercato) != NULL)
-            {
-                return lista_utenti->p;
-            }
-        }
-        lista_utenti = lista_utenti->successivo;
+        buffer[i] = toupper(buffer[i]);
     }
-    return NULL;
 }
 
 // 1. Inserisci nuovo libro
 void gestisci_inserimento_libro(libri *lista_libri)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-
     char titolo[100], nome_autore[50], cognome_autore[50];
 
     printf("Inserisci titolo del libro: ");
-    fgets(titolo, 100, stdin);
-    titolo[strcspn(titolo, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(titolo, 100);
 
     printf("Inserisci nome dell'autore: ");
-    fgets(nome_autore, 50, stdin);
-    nome_autore[strcspn(nome_autore, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nome_autore, 50);
 
     printf("Inserisci cognome dell'autore: ");
-    fgets(cognome_autore, 50, stdin);
-    cognome_autore[strcspn(cognome_autore, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(cognome_autore, 50);
 
     if (inserisci_nuovo_libro(lista_libri, titolo, nome_autore, cognome_autore) == 0)
     {
@@ -92,15 +70,13 @@ void gestisci_inserimento_libro(libri *lista_libri)
 // 2. Modifica libro esistente
 void gestisci_modifica_libro(libri *lista_libri)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char titolo[100];
     printf("Inserisci il titolo del libro da modificare: ");
-    fgets(titolo, 100, stdin);
-    titolo[strcspn(titolo, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(titolo, 100);
 
     libro libro_da_modificare = cerca_libro_nella_lista(*lista_libri, titolo);
+
     if (libro_da_modificare == NULL)
     {
         printf("Errore: libro non trovato.\n");
@@ -110,16 +86,13 @@ void gestisci_modifica_libro(libri *lista_libri)
     char nuovo_titolo[100], nuovo_nome_autore[50], nuovo_cognome_autore[50];
 
     printf("Inserisci il nuovo titolo (lascia vuoto per non modificare): ");
-    fgets(nuovo_titolo, 100, stdin);
-    nuovo_titolo[strcspn(nuovo_titolo, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_titolo, 100);
 
     printf("Inserisci il nuovo nome autore (lascia vuoto per non modificare): ");
-    fgets(nuovo_nome_autore, 50, stdin);
-    nuovo_nome_autore[strcspn(nuovo_nome_autore, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_nome_autore, 50);
 
     printf("Inserisci il nuovo cognome autore (lascia vuoto per non modificare): ");
-    fgets(nuovo_cognome_autore, 50, stdin);
-    nuovo_cognome_autore[strcspn(nuovo_cognome_autore, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_cognome_autore, 50);
 
     // Aggiorna solo i campi non vuoti
     if (strlen(nuovo_titolo) > 0)
@@ -135,13 +108,10 @@ void gestisci_modifica_libro(libri *lista_libri)
 // 3. Elimina libro esistente
 void gestisci_elimina_libro(libri *lista_libri, persone lista_utenti)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char titolo[100];
     printf("Inserisci titolo del libro da eliminare: ");
-    fgets(titolo, 100, stdin);
-    titolo[strcspn(titolo, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(titolo, 100);
 
     libro libro_da_eliminare = cerca_libro_nella_lista(*lista_libri, titolo);
     if (libro_da_eliminare == NULL)
@@ -150,7 +120,7 @@ void gestisci_elimina_libro(libri *lista_libri, persone lista_utenti)
         return;
     }
 
-    if (is_libro_in_prestito(lista_utenti, libro_da_eliminare))
+    if (is_libro_in_prestito_nella_lista(lista_utenti, libro_da_eliminare) == 1)
     {
         printf("ERRORE: Impossibile eliminare il libro '%s' perche' attualmente in prestito.\n", titolo);
         return;
@@ -167,18 +137,14 @@ void gestisci_elimina_libro(libri *lista_libri, persone lista_utenti)
 // 5. Registra nuovo utente
 void gestisci_registrazione_utente(persone *lista_utenti)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char nome[50], cognome[50];
 
     printf("Inserisci nome utente: ");
-    fgets(nome, 50, stdin);
-    nome[strcspn(nome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nome, 50);
 
     printf("Inserisci cognome utente: ");
-    fgets(cognome, 50, stdin);
-    cognome[strcspn(cognome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(cognome, 50);
 
     if (inserisci_nuova_persona(lista_utenti, nome, cognome) == 0)
     {
@@ -193,13 +159,10 @@ void gestisci_registrazione_utente(persone *lista_utenti)
 // 6. Modifica dati utente registrato
 void gestisci_modifica_utente(persone *lista_utenti)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char cognome[50];
     printf("Inserisci il cognome dell'utente da modificare: ");
-    fgets(cognome, 50, stdin);
-    cognome[strcspn(cognome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(cognome, 50);
 
     persona utente = cerca_persona_nella_lista(*lista_utenti, cognome);
     if (utente == NULL)
@@ -211,12 +174,10 @@ void gestisci_modifica_utente(persone *lista_utenti)
     char nuovo_nome[50], nuovo_cognome[50];
 
     printf("Inserisci il nuovo nome (lascia vuoto per non modificare): ");
-    fgets(nuovo_nome, 50, stdin);
-    nuovo_nome[strcspn(nuovo_nome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_nome, 50);
 
     printf("Inserisci il nuovo cognome (lascia vuoto per non modificare): ");
-    fgets(nuovo_cognome, 50, stdin);
-    nuovo_cognome[strcspn(nuovo_cognome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_cognome, 50);
 
     if (strlen(nuovo_nome) > 0)
         set_nome_persona(utente, nuovo_nome);
@@ -229,13 +190,10 @@ void gestisci_modifica_utente(persone *lista_utenti)
 // 7. Elimina utente registrato
 void gestisci_elimina_utente(persone *lista_utenti)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char cognome[50];
     printf("Inserisci cognome dell'utente da eliminare: ");
-    fgets(cognome, 50, stdin);
-    cognome[strcspn(cognome, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(cognome, 50);
 
     persona utente = cerca_persona_nella_lista(*lista_utenti, cognome);
     if (utente == NULL)
@@ -264,42 +222,42 @@ void gestisci_elimina_utente(persone *lista_utenti)
 // 8. Registra nuovo prestito
 void gestisci_registrazione_prestito(persone lista_utenti, libri lista_libri)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char cognome_utente[50], titolo_libro[100], data_prestito[11];
     persona utente = NULL;
     libro libro_da_prestare = NULL;
 
-    do {
+    do
+    {
         printf("Inserisci cognome dell'utente per il prestito: ");
-        fgets(cognome_utente, 50, stdin);
-        cognome_utente[strcspn(cognome_utente, "\n")] = 0;
+        inserisci_input_e_converti_in_maiuscolo(cognome_utente, 50);
 
         utente = cerca_persona_nella_lista(lista_utenti, cognome_utente);
         if (utente == NULL)
             printf("Errore: utente non trovato. Riprova.\n");
     } while (utente == NULL);
 
-    do {
+    do
+    {
         printf("Inserisci titolo del libro da prestare: ");
-        fgets(titolo_libro, 100, stdin);
+        inserisci_input_e_converti_in_maiuscolo(titolo_libro, 100);
         titolo_libro[strcspn(titolo_libro, "\n")] = 0;
 
         libro_da_prestare = cerca_libro_nella_lista(lista_libri, titolo_libro);
-        if (libro_da_prestare == NULL) {
+        if (libro_da_prestare == NULL)
+        {
             printf("Errore: libro non trovato. Riprova.\n");
             continue;
         }
-        if (is_libro_in_prestito(lista_utenti, libro_da_prestare)) {
+        if (is_libro_in_prestito_nella_lista(lista_utenti, libro_da_prestare))
+        {
             printf("Errore: il libro '%s' è già in prestito. Scegli un altro libro.\n", titolo_libro);
             libro_da_prestare = NULL;
         }
     } while (libro_da_prestare == NULL);
 
     printf("Inserisci data prestito (AAAA-MM-GG): ");
-    fgets(data_prestito, 11, stdin);
-    data_prestito[strcspn(data_prestito, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(data_prestito, 11);
 
     prestiti *p_lista_prestiti_utente = get_prestiti_della_persona(utente);
     if (p_lista_prestiti_utente == NULL)
@@ -321,13 +279,9 @@ void gestisci_registrazione_prestito(persone lista_utenti, libri lista_libri)
 // 9. Modifica prestito esistente
 void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-
     char titolo_libro[100];
     printf("Inserisci il titolo del libro associato al prestito da modificare: ");
-    fgets(titolo_libro, 100, stdin);
-    titolo_libro[strcspn(titolo_libro, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(titolo_libro, 100);
 
     libro libro_corrente = cerca_libro_nella_lista(lista_libri, titolo_libro);
     if (libro_corrente == NULL)
@@ -337,7 +291,7 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
     }
 
     // Cerca il prestito e l'utente che lo possiede
-    persona utente_trovato = trova_persona_per_libro_in_prestito(lista_utenti, libro_corrente);
+    persona utente_trovato = trova_persona_per_libro(lista_utenti, libro_corrente);
     if (utente_trovato == NULL)
     {
         printf("Prestito non trovato per il libro specificato.\n");
@@ -348,8 +302,7 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
 
     char nuova_data[11];
     printf("Inserisci la nuova data del prestito (AAAA-MM-GG, lascia vuoto per non modificare): ");
-    fgets(nuova_data, 11, stdin);
-    nuova_data[strcspn(nuova_data, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuova_data, 11);
 
     if (strlen(nuova_data) > 0)
     {
@@ -358,8 +311,7 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
 
     char nuovo_titolo_libro[100];
     printf("Inserisci il nuovo titolo del libro (lascia vuoto per non modificare): ");
-    fgets(nuovo_titolo_libro, 100, stdin);
-    nuovo_titolo_libro[strcspn(nuovo_titolo_libro, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(nuovo_titolo_libro, 100);
 
     if (strlen(nuovo_titolo_libro) > 0)
     {
@@ -368,7 +320,7 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
         {
             printf("Nuovo libro non trovato. Il libro associato non è stato modificato.\n");
         }
-        else if (is_libro_in_prestito(lista_utenti, nuovo_libro))
+        else if (is_libro_in_prestito_nella_lista(lista_utenti, nuovo_libro))
         {
             printf("Il nuovo libro è già in prestito. Il libro associato non è stato modificato.\n");
         }
@@ -381,17 +333,13 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
     printf("Prestito modificato con successo!\n");
 }
 
-
 // 10. Elimina prestito
 void gestisci_elimina_prestito(persone lista_utenti, libri lista_principale_libri)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
 
     char titolo_libro[100];
     printf("Inserisci il titolo del libro del prestito da eliminare: ");
-    fgets(titolo_libro, 100, stdin);
-    titolo_libro[strcspn(titolo_libro, "\n")] = 0;
+    inserisci_input_e_converti_in_maiuscolo(titolo_libro, 100);
 
     libro libro_corrente = cerca_libro_nella_lista(lista_principale_libri, titolo_libro);
 
@@ -401,7 +349,7 @@ void gestisci_elimina_prestito(persone lista_utenti, libri lista_principale_libr
         return;
     }
 
-    persona utente_trovato = trova_persona_per_libro_in_prestito(lista_utenti, libro_corrente);
+    persona utente_trovato = trova_persona_per_libro(lista_utenti, libro_corrente);
     if (utente_trovato == NULL)
     {
         printf("Prestito non trovato per il libro specificato.\n");

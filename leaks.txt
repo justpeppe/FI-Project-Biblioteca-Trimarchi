@@ -1,0 +1,4 @@
+bash make.sh // compilare
+bash make.sh clean // pulire
+export MallocStackLogging=1 // funzione leaks di Macos
+leaks --atExit -- ./biblioteca // Comando per vederli all'uscita

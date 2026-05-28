@@ -4,51 +4,57 @@
 
 #include "persona.h"
 
-int crea_persona(persona* nuova_persona, char nome[], char cognome[]) {
-    
-    if (nuova_persona == NULL || nome == NULL || cognome == NULL) {
-        return 1; 
+int crea_persona(persona *nuova_persona, char nome[], char cognome[])
+{
+
+    if (nuova_persona == NULL || nome == NULL || cognome == NULL)
+    {
+        return 1;
     }
-    
+
     *nuova_persona = (persona)malloc(sizeof(struct persona));
-    
-    if (*nuova_persona == NULL) {
-        return 1; 
+
+    if (*nuova_persona == NULL)
+    {
+        return 1;
     }
-    
-    strcpy((*nuova_persona)->nome, nome);
-    strcpy((*nuova_persona)->cognome, cognome);
-    (*nuova_persona)->lista_propri_prestiti = NULL; 
-    
-    return 0; 
+
+    set_nome_persona(*nuova_persona, nome);
+    set_cognome_persona(*nuova_persona, cognome);
+    crea_lista_prestiti(&((*nuova_persona)->lista_propri_prestiti));
+
+    return 0;
 }
 
+int get_nome_persona(persona pers, char nome[])
+{
 
-int get_nome_persona(persona pers, char nome[]) {
-    
-    if (pers == NULL || nome == NULL) {
-        return 1; 
+    if (pers == NULL || nome == NULL)
+    {
+        return 1;
     }
-    
+
     strcpy(nome, pers->nome);
-    return 0; 
+    return 0;
 }
 
+int get_cognome_persona(persona pers, char cognome[])
+{
 
-int get_cognome_persona(persona pers, char cognome[]) {
-    
-    if (pers == NULL || cognome == NULL) {
-        return 1; 
+    if (pers == NULL || cognome == NULL)
+    {
+        return 1;
     }
-    
+
     strcpy(cognome, pers->cognome);
-    return 0; 
+    return 0;
 }
 
+prestiti *get_prestiti_della_persona(persona pers)
+{
 
-prestiti* get_prestiti_della_persona(persona pers) {
-    
-    if (pers == NULL) {
+    if (pers == NULL)
+    {
         return NULL;
     }
 
@@ -56,51 +62,59 @@ prestiti* get_prestiti_della_persona(persona pers) {
     return &(pers->lista_propri_prestiti);
 }
 
+int set_nome_persona(persona pers, char nuovo_nome[])
+{
 
-int set_nome_persona(persona pers, char nuovo_nome[]) {
-    
-    if (pers == NULL || nuovo_nome == NULL) {
-        return 1; 
-    }
-    
-    strcpy(pers->nome, nuovo_nome);
-    return 0; 
-}
-
-
-int set_cognome_persona(persona pers, char nuovo_cognome[]) {
-    
-    if (pers == NULL || nuovo_cognome == NULL) {
-        return 1; 
-    }
-    
-    strcpy(pers->cognome, nuovo_cognome);
-    return 0; 
-}
-
-
-int distruggi_persona(persona* pers) {
-    
-    if (pers == NULL || *pers == NULL) {
-        return 1; 
-    }
-    
-    distruggi_lista_prestiti(&((*pers)->lista_propri_prestiti));
-    free(*pers);
-    *pers = NULL; 
-    return 0; 
-}
-
-
-int stampa_persona(persona pers) {
-    
-    if (pers == NULL) {
+    if (pers == NULL || nuovo_nome == NULL)
+    {
         return 1;
     }
-    
-    printf("Utente: %s %s\n", pers->nome, pers->cognome);
+
+    strcpy(pers->nome, nuovo_nome);
+    return 0;
+}
+
+int set_cognome_persona(persona pers, char nuovo_cognome[])
+{
+
+    if (pers == NULL || nuovo_cognome == NULL)
+    {
+        return 1;
+    }
+
+    strcpy(pers->cognome, nuovo_cognome);
+    return 0;
+}
+
+int distruggi_persona(persona *pers)
+{
+
+    if (pers == NULL || *pers == NULL)
+    {
+        return 1;
+    }
+
+    distruggi_lista_prestiti(&((*pers)->lista_propri_prestiti));
+    free(*pers);
+    *pers = NULL;
+    return 0;
+}
+
+int stampa_persona(persona pers)
+{
+    if (pers == NULL)
+        return 1;
+
+    char nome[50], cognome[50];
+
+    get_nome_persona(pers, nome);
+    get_cognome_persona(pers, cognome);
+
+    prestiti *lista = get_prestiti_della_persona(pers);
+
+    printf("Utente: %s %s\n", nome, cognome);
     printf("Prestiti in corso:\n");
-    stampa_lista_prestiti(pers->lista_propri_prestiti);
-    
-    return 0; 
+    stampa_lista_prestiti(*lista);
+
+    return 0;
 }
