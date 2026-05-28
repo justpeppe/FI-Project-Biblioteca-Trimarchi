@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <ctype.h>
+
 #include "persone.h"
 #include "libri.h"
 
@@ -23,6 +26,9 @@ int stampa_menu()
     printf("12. Esci\n");
     printf("Seleziona un'azione: ");
     scanf("%d", &scelta);
+    int c;
+    while (c = getchar() != '\n' && c != EOF)
+        ;
     printf("\n");
 
     return scelta;
@@ -30,16 +36,28 @@ int stampa_menu()
 
 void inserisci_input_e_converti_in_maiuscolo(char *buffer, int size)
 {
-    char ch;
-    while ((ch = getchar()) != '\n' && ch != EOF)
-        ;
 
-    fgets(buffer, size, stdin);
-    buffer[strcspn(buffer, "\n")] = 0; // Rimuove il newline
-
-    for (int i = 0; buffer[i]; i++)
+    if (fgets(buffer, size, stdin) != NULL)
     {
-        buffer[i] = toupper(buffer[i]);
+
+        int posizione = strcspn(buffer, "\n");
+
+        if (buffer[posizione] == '\n')
+        {
+
+            buffer[posizione] = '\0';
+        }
+        else
+        {
+            char ch;
+            while ((ch = getchar()) != '\n' && ch != EOF)
+                ;
+        }
+
+        for (int i = 0; buffer[i] != '\0'; i++)
+        {
+            buffer[i] = toupper((unsigned char)buffer[i]);
+        }
     }
 }
 
@@ -94,15 +112,10 @@ void gestisci_modifica_libro(libri *lista_libri)
     printf("Inserisci il nuovo cognome autore (lascia vuoto per non modificare): ");
     inserisci_input_e_converti_in_maiuscolo(nuovo_cognome_autore, 50);
 
-    // Aggiorna solo i campi non vuoti
-    if (strlen(nuovo_titolo) > 0)
-        set_titolo(libro_da_modificare, nuovo_titolo);
-    if (strlen(nuovo_nome_autore) > 0)
-        set_nome_autore(libro_da_modificare, nuovo_nome_autore);
-    if (strlen(nuovo_cognome_autore) > 0)
-        set_cognome_autore(libro_da_modificare, nuovo_cognome_autore);
-
-    printf("Libro modificato con successo!\n");
+    if (modifica_libro_nella_lista(lista_libri, titolo, nuovo_titolo, nuovo_nome_autore, nuovo_cognome_autore) == 0)
+        printf("Libro modificato con successo!\n");
+    else
+        printf("Errore: impossibile modificare il libro.\n");
 }
 
 // 3. Elimina libro esistente
@@ -179,10 +192,7 @@ void gestisci_modifica_utente(persone *lista_utenti)
     printf("Inserisci il nuovo cognome (lascia vuoto per non modificare): ");
     inserisci_input_e_converti_in_maiuscolo(nuovo_cognome, 50);
 
-    if (strlen(nuovo_nome) > 0)
-        set_nome_persona(utente, nuovo_nome);
-    if (strlen(nuovo_cognome) > 0)
-        set_cognome_persona(utente, nuovo_cognome);
+    modifica_persona_nella_lista(lista_utenti, cognome, nuovo_nome, nuovo_cognome);
 
     printf("Dati utente modificati con successo!\n");
 }
