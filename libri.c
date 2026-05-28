@@ -4,7 +4,7 @@
 
 #include "libri.h"
 
-int crea_lista_Libri(libri *lista)
+int crea_lista_libri(libri *lista)
 {
     *lista = NULL;
     return 0;
@@ -13,7 +13,7 @@ int crea_lista_Libri(libri *lista)
 int inserisci_nuovo_libro(libri *lista, char titolo[], char nome_autore[], char cognome_autore[])
 {
 
-    libri nuovo_libro = (libri)malloc(sizeof(struct Libri));
+    libri nuovo_libro = (libri)malloc(sizeof(struct libri));
 
     if (nuovo_libro == NULL)
     {

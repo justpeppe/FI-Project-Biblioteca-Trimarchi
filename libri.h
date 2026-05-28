@@ -2,15 +2,15 @@
 #define LIBRI_H
 #include "libro.h"
 
-struct Libri {
+struct libri {
     libro l;
-    struct Libri* successivo;
+    struct libri* successivo;
 };
 
-typedef struct Libri* libri;
+typedef struct ibri* libri;
 
 
-int crea_lista_Libri(libri* lista);
+int crea_lista_libri(libri* lista);
 
 int inserisci_nuovo_libro(libri* lista, char titolo[], char nome_autore[], char cognome_autore[]);
 
