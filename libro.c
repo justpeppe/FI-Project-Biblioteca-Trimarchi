@@ -13,7 +13,7 @@ int crea_libro(libro *nuovo_libro, char titolo[], char nome_autore[], char cogno
 
     if (*nuovo_libro == NULL)
     {
-        return 1; // Errore di allocazione
+        return 1;
     }
 
     set_titolo(*nuovo_libro, titolo);
@@ -76,7 +76,7 @@ int set_nome_autore(libro l, char nuovo_nome_autore[])
 
     if (l == NULL || nuovo_nome_autore == NULL)
     {
-        return 1; // errore
+        return 1;
     }
 
     strcpy(l->nome_autore, nuovo_nome_autore);
