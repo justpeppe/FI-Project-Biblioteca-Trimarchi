@@ -105,13 +105,13 @@ int modifica_persona_nella_lista(persone *lista, char cognome_attuale[], char nu
     char nome_finale[50], cognome_finale[50];
     get_nome_persona(p, nome_finale);
     get_cognome_persona(p, cognome_finale);
-    
+
     prestiti *lista_prestiti_persona = get_prestiti_della_persona(p);
     prestiti lista_prestiti_copia = NULL;
     if (lista_prestiti_persona != NULL)
     {
         lista_prestiti_copia = *lista_prestiti_persona;
-        *lista_prestiti_persona = NULL; // Scollego per evitare problemi con la distruzione di liste
+        set_prestiti_della_persona(p, NULL); // Scollego la lista dei prestiti dalla persona prima di modificarla
     }
 
     if (nuovo_nome[0] != '\0')
@@ -129,7 +129,7 @@ int modifica_persona_nella_lista(persone *lista, char cognome_attuale[], char nu
         }
         return 1;
     }
-    
+
     persona p_modificata = cerca_persona_nella_lista(*lista, cognome_finale);
     if (p_modificata == NULL)
     {
@@ -172,7 +172,7 @@ int cancella_persona_dalla_lista(persone *lista, char cognome_chiave[])
                 precedente->successivo = corrente->successivo; // Rimuovo l'elemento corrente
             }
             distruggi_persona(&corrente->p); // Libero la memoria della persona
-            free(corrente); // Libero la memoria del nodo
+            free(corrente);                  // Libero la memoria del nodo
             return 0;
         }
 
@@ -197,7 +197,7 @@ int distruggi_lista_persone(persone *lista)
         persone da_cancellare = corrente;
         corrente = corrente->successivo;
         distruggi_persona(&da_cancellare->p); // Libero la memoria della persona
-        free(da_cancellare); // Libero la memoria del nodo
+        free(da_cancellare);                  // Libero la memoria del nodo
     }
 
     *lista = NULL;
