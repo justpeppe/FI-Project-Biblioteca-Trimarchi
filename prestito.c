@@ -4,7 +4,6 @@
 
 #include "prestito.h"
 
-// DOPO la correzione
 int crea_prestito(prestito *nuovo_prestito, char data[], libro l_associato)
 {
     if (nuovo_prestito == NULL || data == NULL || l_associato == NULL)

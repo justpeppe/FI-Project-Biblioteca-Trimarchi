@@ -111,7 +111,7 @@ int modifica_persona_nella_lista(persone *lista, char cognome_attuale[], char nu
     if (lista_prestiti_persona != NULL)
     {
         lista_prestiti_copia = *lista_prestiti_persona;
-        *lista_prestiti_persona = NULL; // Scollega per evitare deallocazione
+        *lista_prestiti_persona = NULL; // Scollego per evitare problemi con la distruzione di liste
     }
 
     if (nuovo_nome[0] != '\0')
@@ -165,14 +165,14 @@ int cancella_persona_dalla_lista(persone *lista, char cognome_chiave[])
         {
             if (precedente == NULL)
             {
-                *lista = corrente->successivo; // Rimuove la testa della lista
+                *lista = corrente->successivo; // Rimuovo la testa della lista
             }
             else
             {
-                precedente->successivo = corrente->successivo; // Rimuove l'elemento corrente
+                precedente->successivo = corrente->successivo; // Rimuovo l'elemento corrente
             }
-            distruggi_persona(&corrente->p); // Libera la memoria della persona
-            free(corrente);                  // Libera la memoria del nodo
+            distruggi_persona(&corrente->p); // Libero la memoria della persona
+            free(corrente); // Libero la memoria del nodo
             return 0;
         }
 
@@ -196,8 +196,8 @@ int distruggi_lista_persone(persone *lista)
     {
         persone da_cancellare = corrente;
         corrente = corrente->successivo;
-        distruggi_persona(&da_cancellare->p); // Libera la memoria della persona
-        free(da_cancellare);                  // Libera la memoria del nodo
+        distruggi_persona(&da_cancellare->p); // Libero la memoria della persona
+        free(da_cancellare); // Libero la memoria del nodo
     }
 
     *lista = NULL;

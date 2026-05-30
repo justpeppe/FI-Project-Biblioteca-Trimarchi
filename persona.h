@@ -17,7 +17,7 @@ int get_nome_persona(persona pers, char nome[]);
 
 int get_cognome_persona(persona pers, char cognome[]);
 
-prestiti* get_prestiti_della_persona(persona pers); // modifica 
+prestiti* get_prestiti_della_persona(persona pers);
 
 int set_nome_persona(persona pers, char nuovo_nome[]);
 

@@ -14,7 +14,7 @@ int crea_prestito(prestito* nuovo_prestito, char data[], libro l_associato);
 
 int get_data_del_prestito(prestito p, char data[]);
 
-libro get_libro_del_prestito(prestito p, libro* l_cerca); // modifica aggiunta di libro* l_cerca
+libro get_libro_del_prestito(prestito p, libro* l_cerca);
 
 int set_data_del_prestito(prestito p, char nuova_data[]);
 

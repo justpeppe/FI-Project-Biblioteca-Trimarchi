@@ -58,7 +58,7 @@ prestiti *get_prestiti_della_persona(persona pers)
         return NULL;
     }
 
-    // Restituisce l'indirizzo del puntatore alla lista, non una sua copia.
+    // Restituisco l'indirizzo del puntatore alla lista, non una sua copia.
     return &(pers->lista_propri_prestiti);
 }
 

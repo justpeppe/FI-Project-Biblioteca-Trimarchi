@@ -20,7 +20,7 @@ prestito cerca_prestito_nella_lista_per_libro(prestiti lista, libro l_associato)
 
 int modifica_prestito_nella_lista(prestiti *lista, char data_attuale[], char nuova_data[], libro nuovo_l_associato);
 
-int cancella_prestito_dalla_lista(prestiti *lista, libro l_associato); // modifica da data a libro
+int cancella_prestito_dalla_lista(prestiti *lista, libro l_associato);
 
 int distruggi_lista_prestiti(prestiti *lista);
 

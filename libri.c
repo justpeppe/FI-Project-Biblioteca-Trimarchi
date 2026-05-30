@@ -204,7 +204,7 @@ int distruggi_lista_libri(libri *lista)
         free(da_cancellare);
     }
 
-    *lista = NULL; // Imposta la lista a NULL (vuota)
+    *lista = NULL;
     return 0;
 }
 
