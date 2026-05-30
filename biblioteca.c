@@ -56,7 +56,7 @@ void inserisci_input_e_converti_in_maiuscolo(char *buffer, int size)
 
         for (int i = 0; buffer[i] != '\0'; i++)
         {
-            buffer[i] = toupper((unsigned char)buffer[i]);
+            buffer[i] = toupper(buffer[i]);
         }
     }
 }
