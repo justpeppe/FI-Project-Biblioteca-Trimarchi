@@ -23,7 +23,7 @@ int inserisci_nuovo_prestito(prestiti *lista, char data[], libro l_associato)
 
     if (nuovo_nodo == NULL)
     {
-        distruggi_prestito(&p_da_inserire); // Pulisci se fallisce
+        distruggi_prestito(&p_da_inserire); // Pulisco se fallisce
         return 1;
     }
 
@@ -113,7 +113,7 @@ int modifica_prestito_nella_lista(prestiti *lista, char data_attuale[], char nuo
         return 1; // Prestito non trovato
     }
 
-    // Salva i valori correnti
+    // Salvo i valori correnti
     char data_finale[11];
     libro libro_attuale;
     get_data_del_prestito(p, data_finale);
@@ -126,10 +126,10 @@ int modifica_prestito_nella_lista(prestiti *lista, char data_attuale[], char nuo
     if (nuovo_l_associato != NULL)
         libro_finale = nuovo_l_associato;
 
-    // Cancella il vecchio prestito (tramite libro attuale come chiave)
+    // Cancello il vecchio prestito
     cancella_prestito_dalla_lista(lista, libro_attuale);
 
-    // Reinserisci con i valori aggiornati (ordinato per data)
+    // Reinserisco con i valori aggiornati
     if (inserisci_nuovo_prestito(lista, data_finale, libro_finale) != 0)
         return 1;
 
@@ -182,11 +182,11 @@ int distruggi_lista_prestiti(prestiti *lista)
         prestiti da_cancellare = corrente;
         corrente = corrente->successivo;
 
-        distruggi_prestito(&da_cancellare->p); // Libera la memoria del prestito
-        free(da_cancellare);                   // Libera la memoria della struttura Prestiti
+        distruggi_prestito(&da_cancellare->p); // Libero la memoria del prestito
+        free(da_cancellare); // Libero la memoria della struttura Prestiti
     }
 
-    *lista = NULL; // Imposta la lista a NULL
+    *lista = NULL; // Imposto la lista a NULL
     return 0;
 }
 
