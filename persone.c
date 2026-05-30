@@ -105,8 +105,14 @@ int modifica_persona_nella_lista(persone *lista, char cognome_attuale[], char nu
     char nome_finale[50], cognome_finale[50];
     get_nome_persona(p, nome_finale);
     get_cognome_persona(p, cognome_finale);
+    
     prestiti *lista_prestiti_persona = get_prestiti_della_persona(p);
-    prestiti lista_prestiti_copia = *lista_prestiti_persona; // Copia temporanea della lista prestiti
+    prestiti lista_prestiti_copia = NULL;
+    if (lista_prestiti_persona != NULL)
+    {
+        lista_prestiti_copia = *lista_prestiti_persona;
+        *lista_prestiti_persona = NULL; // Scollega per evitare deallocazione
+    }
 
     if (nuovo_nome[0] != '\0')
         strcpy(nome_finale, nuovo_nome);
@@ -115,14 +121,26 @@ int modifica_persona_nella_lista(persone *lista, char cognome_attuale[], char nu
 
     cancella_persona_dalla_lista(lista, cognome_attuale);
 
-    if (inserisci_nuova_persona(lista, nome_finale, cognome_finale) == 1)
+    if (inserisci_nuova_persona(lista, nome_finale, cognome_finale) != 0)
+    {
+        if (lista_prestiti_copia != NULL)
+        {
+            distruggi_lista_prestiti(&lista_prestiti_copia);
+        }
         return 1;
+    }
+    
     persona p_modificata = cerca_persona_nella_lista(*lista, cognome_finale);
     if (p_modificata == NULL)
+    {
+        if (lista_prestiti_copia != NULL)
+        {
+            distruggi_lista_prestiti(&lista_prestiti_copia);
+        }
         return 1;
+    }
 
-    prestiti *lista_prestiti_modificata = get_prestiti_della_persona(p_modificata);
-    *lista_prestiti_modificata = lista_prestiti_copia;
+    set_prestiti_della_persona(p_modificata, lista_prestiti_copia);
 
     return 0;
 }

@@ -27,4 +27,6 @@ int distruggi_persona(persona* pers);
 
 int stampa_persona(persona pers);
 
+int set_prestiti_della_persona(persona pers, prestiti nuova_lista);
+
 #endif

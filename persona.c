@@ -86,6 +86,14 @@ int set_cognome_persona(persona pers, char nuovo_cognome[])
     return 0;
 }
 
+int set_prestiti_della_persona(persona pers, prestiti nuova_lista)
+{
+    if (pers == NULL)
+        return 1;
+    pers->lista_propri_prestiti = nuova_lista;
+    return 0;
+}
+
 int distruggi_persona(persona *pers)
 {
 

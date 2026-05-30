@@ -6,6 +6,8 @@
 
 int crea_libro(libro *nuovo_libro, char titolo[], char nome_autore[], char cognome_autore[])
 {
+    if (nuovo_libro == NULL || titolo == NULL || nome_autore == NULL || cognome_autore == NULL)
+        return 1;
 
     *nuovo_libro = (libro)malloc(sizeof(struct libro));
 

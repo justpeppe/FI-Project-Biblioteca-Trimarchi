@@ -100,25 +100,38 @@ prestito cerca_prestito_nella_lista_per_libro(prestiti lista, libro l_associato)
     return NULL;
 }
 
-int modifica_prestito_nella_lista(prestiti lista, char data_attuale[], char nuova_data[], libro nuovo_l_associato)
+int modifica_prestito_nella_lista(prestiti *lista, char data_attuale[], char nuova_data[], libro nuovo_l_associato)
 {
 
-    prestito p = cerca_prestito_nella_lista_per_data(lista, data_attuale);
+    if (lista == NULL || data_attuale == NULL)
+        return 1;
+
+    prestito p = cerca_prestito_nella_lista_per_data(*lista, data_attuale);
 
     if (p == NULL)
     {
         return 1; // Prestito non trovato
     }
 
-    if (set_data_del_prestito(p, nuova_data) != 0)
-    {
-        return 1;
-    }
+    // Salva i valori correnti
+    char data_finale[11];
+    libro libro_attuale;
+    get_data_del_prestito(p, data_finale);
+    get_libro_del_prestito(p, &libro_attuale);
 
-    if (set_libro_del_prestito(p, nuovo_l_associato) != 0)
-    {
+    libro libro_finale = libro_attuale;
+
+    if (nuova_data != NULL && nuova_data[0] != '\0')
+        strcpy(data_finale, nuova_data);
+    if (nuovo_l_associato != NULL)
+        libro_finale = nuovo_l_associato;
+
+    // Cancella il vecchio prestito (tramite libro attuale come chiave)
+    cancella_prestito_dalla_lista(lista, libro_attuale);
+
+    // Reinserisci con i valori aggiornati (ordinato per data)
+    if (inserisci_nuovo_prestito(lista, data_finale, libro_finale) != 0)
         return 1;
-    }
 
     return 0;
 }
@@ -159,6 +172,8 @@ int cancella_prestito_dalla_lista(prestiti *lista, libro l_associato)
 
 int distruggi_lista_prestiti(prestiti *lista)
 {
+    if (lista == NULL)
+        return 1;
 
     prestiti corrente = *lista;
 

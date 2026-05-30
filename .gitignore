@@ -53,3 +53,11 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Binaries for programs and plugins
+*.dll
+*.exe
+*.DS_Store
+.DS_Store
+copia_txt/
+copia_txt.py

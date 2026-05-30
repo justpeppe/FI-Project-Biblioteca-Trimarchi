@@ -27,7 +27,7 @@ int stampa_menu()
     printf("Seleziona un'azione: ");
     scanf("%d", &scelta);
     int c;
-    while (c = getchar() != '\n' && c != EOF)
+    while ((c = getchar()) != '\n' && c != EOF)
         ;
     printf("\n");
 
@@ -49,7 +49,7 @@ void inserisci_input_e_converti_in_maiuscolo(char *buffer, int size)
         }
         else
         {
-            char ch;
+            int ch;
             while ((ch = getchar()) != '\n' && ch != EOF)
                 ;
         }
@@ -192,9 +192,10 @@ void gestisci_modifica_utente(persone *lista_utenti)
     printf("Inserisci il nuovo cognome (lascia vuoto per non modificare): ");
     inserisci_input_e_converti_in_maiuscolo(nuovo_cognome, 50);
 
-    modifica_persona_nella_lista(lista_utenti, cognome, nuovo_nome, nuovo_cognome);
-
-    printf("Dati utente modificati con successo!\n");
+    if (modifica_persona_nella_lista(lista_utenti, cognome, nuovo_nome, nuovo_cognome) == 0)
+        printf("Dati utente modificati con successo!\n");
+    else
+        printf("Errore: impossibile modificare i dati utente.\n");
 }
 
 // 7. Elimina utente registrato
@@ -251,7 +252,6 @@ void gestisci_registrazione_prestito(persone lista_utenti, libri lista_libri)
     {
         printf("Inserisci titolo del libro da prestare: ");
         inserisci_input_e_converti_in_maiuscolo(titolo_libro, 100);
-        titolo_libro[strcspn(titolo_libro, "\n")] = 0;
 
         libro_da_prestare = cerca_libro_nella_lista(lista_libri, titolo_libro);
         if (libro_da_prestare == NULL)
@@ -307,25 +307,31 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
         printf("Prestito non trovato per il libro specificato.\n");
         return;
     }
+
     prestiti *p_lista_prestiti = get_prestiti_della_persona(utente_trovato);
     prestito p = cerca_prestito_nella_lista_per_libro(*p_lista_prestiti, libro_corrente);
+    if (p == NULL)
+    {
+        printf("Prestito non trovato.\n");
+        return;
+    }
+
+    // Recupera la data attuale per la ricerca nella modifica
+    char data_attuale[11];
+    get_data_del_prestito(p, data_attuale);
 
     char nuova_data[11];
     printf("Inserisci la nuova data del prestito (AAAA-MM-GG, lascia vuoto per non modificare): ");
     inserisci_input_e_converti_in_maiuscolo(nuova_data, 11);
 
-    if (strlen(nuova_data) > 0)
-    {
-        set_data_del_prestito(p, nuova_data);
-    }
-
+    libro nuovo_libro = NULL;
     char nuovo_titolo_libro[100];
     printf("Inserisci il nuovo titolo del libro (lascia vuoto per non modificare): ");
     inserisci_input_e_converti_in_maiuscolo(nuovo_titolo_libro, 100);
 
     if (strlen(nuovo_titolo_libro) > 0)
     {
-        libro nuovo_libro = cerca_libro_nella_lista(lista_libri, nuovo_titolo_libro);
+        nuovo_libro = cerca_libro_nella_lista(lista_libri, nuovo_titolo_libro);
         if (nuovo_libro == NULL)
         {
             printf("Nuovo libro non trovato. Il libro associato non è stato modificato.\n");
@@ -333,14 +339,14 @@ void gestisci_modifica_prestito(persone lista_utenti, libri lista_libri)
         else if (is_libro_in_prestito_nella_lista(lista_utenti, nuovo_libro))
         {
             printf("Il nuovo libro è già in prestito. Il libro associato non è stato modificato.\n");
-        }
-        else
-        {
-            set_libro_del_prestito(p, nuovo_libro);
+            nuovo_libro = NULL;
         }
     }
 
-    printf("Prestito modificato con successo!\n");
+    if (modifica_prestito_nella_lista(p_lista_prestiti, data_attuale, nuova_data, nuovo_libro) == 0)
+        printf("Prestito modificato con successo!\n");
+    else
+        printf("Errore: impossibile modificare il prestito.\n");
 }
 
 // 10. Elimina prestito
@@ -390,7 +396,7 @@ int main()
     libri lista_principale_libri;
     persone lista_principale_utenti;
 
-    crea_lista_Libri(&lista_principale_libri);
+    crea_lista_libri(&lista_principale_libri);
     crea_lista_persone(&lista_principale_utenti);
 
     int scelta = -1;
@@ -441,8 +447,8 @@ int main()
         }
     } while (scelta != 12);
 
-    distruggi_lista_libri(&lista_principale_libri);
     distruggi_lista_persone(&lista_principale_utenti);
+    distruggi_lista_libri(&lista_principale_libri);
 
     printf("Programma terminato. Arrivederci!\n");
     return 0;

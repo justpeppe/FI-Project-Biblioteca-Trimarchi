@@ -6,6 +6,8 @@
 
 int crea_lista_libri(libri *lista)
 {
+    if (lista == NULL)
+        return 1;
     *lista = NULL;
     return 0;
 }
@@ -20,16 +22,11 @@ int inserisci_nuovo_libro(libri *lista, char titolo[], char nome_autore[], char 
         return 1; // Errore di allocazione
     }
 
-    nuovo_libro->l = (libro)malloc(sizeof(struct libro));
-    if (nuovo_libro->l == NULL)
+    if (crea_libro(&nuovo_libro->l, titolo, nome_autore, cognome_autore) != 0)
     {
         free(nuovo_libro);
         return 1;
     }
-
-    set_titolo(nuovo_libro->l, titolo);
-    set_nome_autore(nuovo_libro->l, nome_autore);
-    set_cognome_autore(nuovo_libro->l, cognome_autore);
 
     char titolo_nuovo[100];
     get_titolo(nuovo_libro->l, titolo_nuovo);
@@ -91,23 +88,67 @@ int modifica_libro_nella_lista(libri *lista, char titolo_attuale[],
     if (l == NULL)
         return 1;
 
-    char titolo_finale[100], nome_finale[50], cognome_finale[50];
-    get_titolo(l, titolo_finale);
-    get_nome_autore(l, nome_finale);
-    get_cognome_autore(l, cognome_finale);
-
-    if (nuovo_titolo[0] != '\0')
-        strcpy(titolo_finale, nuovo_titolo);
     if (nuovo_nome_autore[0] != '\0')
-        strcpy(nome_finale, nuovo_nome_autore);
+        set_nome_autore(l, nuovo_nome_autore);
     if (nuovo_cognome_autore[0] != '\0')
-        strcpy(cognome_finale, nuovo_cognome_autore);
+        set_cognome_autore(l, nuovo_cognome_autore);
 
-    if (cancella_libro_dalla_lista(lista, titolo_attuale) == 1)
-        return 1;
+    // Se il titolo cambia, serve ri-ordinare la lista
+    if (nuovo_titolo[0] != '\0')
+    {
+        set_titolo(l, nuovo_titolo);
 
-    if (inserisci_nuovo_libro(lista, titolo_finale, nome_finale, cognome_finale) == 1)
-        return 1;
+        // Scollego il nodo dalla lista (senza liberare il libro)
+        libri corrente = *lista;
+        libri precedente = NULL;
+        libri nodo_da_spostare = NULL;
+
+        while (corrente != NULL)
+        {
+            if (corrente->l == l)
+            {
+                nodo_da_spostare = corrente;
+                if (precedente == NULL)
+                    *lista = corrente->successivo;
+                else
+                    precedente->successivo = corrente->successivo;
+                break;
+            }
+            precedente = corrente;
+            corrente = corrente->successivo;
+        }
+
+        if (nodo_da_spostare == NULL)
+            return 1;
+
+        // Reinserisco il nodo nella posizione corretta (ordinato per titolo)
+        char titolo_nuovo[100];
+        get_titolo(l, titolo_nuovo);
+
+        libri pos_corrente = *lista;
+        libri pos_precedente = NULL;
+        char titolo_corrente[100];
+
+        while (pos_corrente != NULL)
+        {
+            get_titolo(pos_corrente->l, titolo_corrente);
+            if (strcmp(titolo_corrente, titolo_nuovo) >= 0)
+                break;
+            pos_precedente = pos_corrente;
+            pos_corrente = pos_corrente->successivo;
+        }
+
+        if (pos_precedente == NULL)
+        {
+            nodo_da_spostare->successivo = *lista;
+            *lista = nodo_da_spostare;
+        }
+        else
+        {
+            pos_precedente->successivo = nodo_da_spostare;
+            nodo_da_spostare->successivo = pos_corrente;
+        }
+    }
 
     return 0;
 }
@@ -129,15 +170,15 @@ int cancella_libro_dalla_lista(libri *lista, char titolo_chiave[])
 
             if (precedente == NULL)
             {
-                *lista = corrente->successivo; // Rimuove il primo elemento
+                *lista = corrente->successivo; 
             }
             else
             {
-                precedente->successivo = corrente->successivo; // Rimuove l'elemento corrente
+                precedente->successivo = corrente->successivo; 
             }
 
-            distruggi_libro(&corrente->l); // Libera la memoria del libro
-            free(corrente);                // Libera la memoria della struttura Libri
+            distruggi_libro(&corrente->l); 
+            free(corrente);                
 
             return 0;
         }
@@ -150,6 +191,8 @@ int cancella_libro_dalla_lista(libri *lista, char titolo_chiave[])
 
 int distruggi_lista_libri(libri *lista)
 {
+    if (lista == NULL)
+        return 1;
 
     libri corrente = *lista;
     while (corrente != NULL)
@@ -167,6 +210,11 @@ int distruggi_lista_libri(libri *lista)
 
 void stampa_lista_libri(libri lista)
 {
+    if (lista == NULL)
+    {
+        printf("Nessun libro presente.\n");
+        return;
+    }
 
     while (lista != NULL)
     {
