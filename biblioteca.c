@@ -399,6 +399,9 @@ int main()
     crea_lista_libri(&lista_principale_libri);
     crea_lista_persone(&lista_principale_utenti);
 
+    carica_libri_da_file(&lista_principale_libri, "libri.txt");
+    carica_persone_da_file(&lista_principale_utenti, "persone.txt", lista_principale_libri);
+
     int scelta = -1;
     do
     {
@@ -446,6 +449,9 @@ int main()
             break;
         }
     } while (scelta != 12);
+
+    salva_libri_su_file(lista_principale_libri, "libri.txt");
+    salva_persone_su_file(lista_principale_utenti, "persone.txt");
 
     distruggi_lista_persone(&lista_principale_utenti);
     distruggi_lista_libri(&lista_principale_libri);

@@ -24,4 +24,8 @@ int distruggi_lista_libri(libri *lista);
 
 void stampa_lista_libri(libri lista);
 
+int salva_libri_su_file(libri lista, const char *nome_file);
+
+int carica_libri_da_file(libri *lista, const char *nome_file);
+
 #endif

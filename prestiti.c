@@ -208,3 +208,73 @@ int stampa_lista_prestiti(prestiti lista)
     printf("\nFine della lista dei prestiti.\n");
     return 0;
 }
+
+void salva_prestiti_su_file(prestiti lista, FILE *fp) {
+    int K = 0;
+    prestiti corrente = lista;
+    prestiti pila = NULL;
+
+    while (corrente != NULL) {
+        K++;
+        prestiti nuovo = (prestiti)malloc(sizeof(struct prestiti));
+        if (nuovo != NULL) {
+            nuovo->p = corrente->p;
+            nuovo->successivo = pila;
+            pila = nuovo;
+        }
+        corrente = corrente->successivo;
+    }
+
+    fprintf(fp, "%d\n", K);
+
+    while (pila != NULL) {
+        prestiti estratto = pila;
+        char data[20], titolo_libro[100];
+        libro l_associato;
+
+        get_data_del_prestito(estratto->p, data);
+        get_libro_del_prestito(estratto->p, &l_associato);
+        get_titolo(l_associato, titolo_libro);
+        
+        fprintf(fp, "%s\n%s\n", data, titolo_libro);
+        
+        pila = pila->successivo;
+        free(estratto);
+    }
+}
+
+void carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri) {
+    int K, i;
+    char data[20], titolo_libro[100];
+    libro l_associato;
+
+    if (fscanf(fp, "%d\n", &K) != 1) return;
+
+    for (i = 0; i < K; i++) {
+        int j;
+        if (fgets(data, sizeof(data), fp) != NULL) {
+            j = 0;
+            while (data[j] != '\n' && data[j] != '\0') { j++; }
+            data[j] = '\0';
+        }
+        if (fgets(titolo_libro, sizeof(titolo_libro), fp) != NULL) {
+            j = 0;
+            while (titolo_libro[j] != '\n' && titolo_libro[j] != '\0') { j++; }
+            titolo_libro[j] = '\0';
+        }
+        
+        l_associato = cerca_libro_nella_lista(lista_libri, titolo_libro);
+        
+        if (l_associato != NULL) {
+            prestiti nuovo = (prestiti)malloc(sizeof(struct prestiti));
+            if (nuovo != NULL) {
+                if (crea_prestito(&(nuovo->p), data, l_associato) == 0) {
+                    nuovo->successivo = *lista;
+                    *lista = nuovo;
+                } else {
+                    free(nuovo);
+                }
+            }
+        }
+    }
+}

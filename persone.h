@@ -1,6 +1,8 @@
 #ifndef PERSONE_H
 #define PERSONE_H
 #include "persona.h"
+#include "prestiti.h"
+#include "libri.h"
 
 struct persone
 {
@@ -27,5 +29,9 @@ int stampa_lista_persone(persone lista);
 int is_libro_in_prestito_nella_lista(persone lista, libro l);
 
 persona trova_persona_per_libro(persone lista, libro l);
+
+int salva_persone_su_file(persone lista, const char *nome_file);
+
+int carica_persone_da_file(persone *lista, const char *nome_file, libri lista_libri);
 
 #endif

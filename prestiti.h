@@ -1,6 +1,8 @@
 #ifndef PRESTITI_H
 #define PRESTITI_H
+#include "libro.h"
 #include "prestito.h"
+#include "libri.h"
 
 struct prestiti
 {
@@ -25,5 +27,9 @@ int cancella_prestito_dalla_lista(prestiti *lista, libro l_associato);
 int distruggi_lista_prestiti(prestiti *lista);
 
 int stampa_lista_prestiti(prestiti lista);
+
+void salva_prestiti_su_file(prestiti lista, FILE *fp);
+
+void carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri);
 
 #endif

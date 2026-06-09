@@ -222,3 +222,92 @@ void stampa_lista_libri(libri lista)
         lista = lista->successivo;
     }
 }
+
+int salva_libri_su_file(libri lista, const char *nome_file) {
+    FILE *fp = fopen(nome_file, "w");
+    if (fp == NULL) return 1;
+
+    int N = 0;
+    libri corrente = lista;
+    libri pila = NULL;
+
+    while (corrente != NULL) {
+        N++;
+        libri nuovo = (libri)malloc(sizeof(struct libri));
+        if (nuovo != NULL) {
+            nuovo->l = corrente->l;
+            nuovo->successivo = pila;
+            pila = nuovo;
+        }
+        corrente = corrente->successivo;
+    }
+
+    fprintf(fp, "%d\n", N);
+
+    while (pila != NULL) {
+        libri estratto = pila;
+        char titolo[100], nome[50], cognome[50];
+        
+        get_titolo(estratto->l, titolo);
+        get_nome_autore(estratto->l, nome);
+        get_cognome_autore(estratto->l, cognome);
+
+        fprintf(fp, "%s\n%s\n%s\n", titolo, nome, cognome);
+
+        pila = pila->successivo;
+        free(estratto);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+int carica_libri_da_file(libri *lista, const char *nome_file) {
+    FILE *fp = fopen(nome_file, "r");
+    if (fp == NULL) return 1;
+
+    distruggi_lista_libri(lista);
+    crea_lista_libri(lista);
+
+    int N;
+    if (fscanf(fp, "%d\n", &N) != 1) {
+        fclose(fp);
+        return 1;
+    }
+
+    for (int i = 0; i < N; i++) {
+        char titolo[100], nome[50], cognome[50];
+        int j;
+
+        if (fgets(titolo, sizeof(titolo), fp) != NULL) {
+            j = 0;
+            while (titolo[j] != '\n' && titolo[j] != '\0') { j++; }
+            titolo[j] = '\0';
+        }
+
+        if (fgets(nome, sizeof(nome), fp) != NULL) {
+            j = 0;
+            while (nome[j] != '\n' && nome[j] != '\0') { j++; }
+            nome[j] = '\0';
+        }
+
+        if (fgets(cognome, sizeof(cognome), fp) != NULL) {
+            j = 0;
+            while (cognome[j] != '\n' && cognome[j] != '\0') { j++; }
+            cognome[j] = '\0';
+        }
+
+        libri nuovo = (libri)malloc(sizeof(struct libri));
+        if (nuovo != NULL) {
+            if (crea_libro(&(nuovo->l), titolo, nome, cognome) == 0) {
+                nuovo->successivo = *lista;
+                *lista = nuovo;
+            } else {
+                free(nuovo);
+            }
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}

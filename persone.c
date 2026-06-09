@@ -265,3 +265,95 @@ persona trova_persona_per_libro(persone lista, libro l)
 
     return NULL;
 }
+
+int salva_persone_su_file(persone lista, const char *nome_file) {
+    FILE *fp = fopen(nome_file, "w");
+    if (fp == NULL) return 1;
+
+    int N = 0;
+    persone corrente = lista;
+    persone pila = NULL;
+
+    while (corrente != NULL) {
+        N++;
+        persone nuovo = (persone)malloc(sizeof(struct persone));
+        if (nuovo != NULL) {
+            nuovo->p = corrente->p;
+            nuovo->successivo = pila;
+            pila = nuovo;
+        }
+        corrente = corrente->successivo;
+    }
+
+    fprintf(fp, "%d\n", N);
+
+    while (pila != NULL) {
+        persone estratto = pila;
+        char nome[50], cognome[50];
+        prestiti *p_lista;
+        
+        get_nome_persona(estratto->p, nome);
+        get_cognome_persona(estratto->p, cognome);
+        
+        fprintf(fp, "%s\n%s\n", nome, cognome);
+        
+        p_lista = get_prestiti_della_persona(estratto->p);
+        salva_prestiti_su_file(*p_lista, fp);
+        
+        pila = pila->successivo;
+        free(estratto);
+    }
+    
+    fclose(fp);
+    return 0;
+}
+
+int carica_persone_da_file(persone *lista, const char *nome_file, libri lista_libri) {
+    FILE *fp = fopen(nome_file, "r");
+    if (fp == NULL) return 1;
+
+    distruggi_lista_persone(lista);
+    crea_lista_persone(lista);
+
+    int N;
+    if (fscanf(fp, "%d\n", &N) != 1) {
+        fclose(fp);
+        return 1;
+    }
+
+    for (int i = 0; i < N; i++) {
+        char nome[50], cognome[50];
+        int j;
+        prestiti *p_lista;
+        
+        if (fgets(nome, sizeof(nome), fp) != NULL) {
+            j = 0;
+            while (nome[j] != '\n' && nome[j] != '\0') { j++; }
+            nome[j] = '\0';
+        }
+        
+        if (fgets(cognome, sizeof(cognome), fp) != NULL) {
+            j = 0;
+            while (cognome[j] != '\n' && cognome[j] != '\0') { j++; }
+            cognome[j] = '\0';
+        }
+
+        persone nuovo = (persone)malloc(sizeof(struct persone));
+        if (nuovo != NULL) {
+            if (crea_persona(&(nuovo->p), nome, cognome) == 0) {
+                
+                p_lista = get_prestiti_della_persona(nuovo->p);
+                crea_lista_prestiti(p_lista);
+                carica_prestiti_da_file(p_lista, fp, lista_libri);
+                
+                nuovo->successivo = *lista;
+                *lista = nuovo;
+            } else {
+                free(nuovo);
+            }
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
