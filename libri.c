@@ -224,38 +224,45 @@ void stampa_lista_libri(libri lista)
 }
 
 int salva_libri_su_file(libri lista, const char *nome_file) {
-    FILE *fp = fopen(nome_file, "w");
-    if (fp == NULL) return 1;
-
+    FILE *fp;
     int N = 0;
     libri corrente = lista;
-    libri pila = NULL;
+    libri pila = NULL; 
+    libri nuovo_nodo;
+    libri nodo_estratto;
+    char titolo[100], nome[50], cognome[50];
 
+    if ((fp = fopen(nome_file, "w")) == NULL) {
+        perror("Errore di apertura file libri in scrittura");
+        return 1;
+    }
+
+    /* PUSH: Creazione della pila per inversione ordine */
     while (corrente != NULL) {
         N++;
-        libri nuovo = (libri)malloc(sizeof(struct libri));
-        if (nuovo != NULL) {
-            nuovo->l = corrente->l;
-            nuovo->successivo = pila;
-            pila = nuovo;
+        nuovo_nodo = (libri)malloc(sizeof(struct libri));
+        if (nuovo_nodo != NULL) {
+            nuovo_nodo->l = corrente->l;
+            nuovo_nodo->successivo = pila;
+            pila = nuovo_nodo;
         }
         corrente = corrente->successivo;
     }
 
     fprintf(fp, "%d\n", N);
 
+    /* POP: Scrittura in ordine inverso */
     while (pila != NULL) {
-        libri estratto = pila;
-        char titolo[100], nome[50], cognome[50];
+        nodo_estratto = pila;
         
-        get_titolo(estratto->l, titolo);
-        get_nome_autore(estratto->l, nome);
-        get_cognome_autore(estratto->l, cognome);
+        get_titolo(nodo_estratto->l, titolo);
+        get_nome_autore(nodo_estratto->l, nome);
+        get_cognome_autore(nodo_estratto->l, cognome);
 
         fprintf(fp, "%s\n%s\n%s\n", titolo, nome, cognome);
-
+        
         pila = pila->successivo;
-        free(estratto);
+        free(nodo_estratto);
     }
 
     fclose(fp);
@@ -263,47 +270,56 @@ int salva_libri_su_file(libri lista, const char *nome_file) {
 }
 
 int carica_libri_da_file(libri *lista, const char *nome_file) {
-    FILE *fp = fopen(nome_file, "r");
-    if (fp == NULL) return 1;
+    FILE *fp;
+    int N, i, j;
+    char titolo[100], nome[50], cognome[50];
+    libri nuovo_nodo;
 
-    distruggi_lista_libri(lista);
-    crea_lista_libri(lista);
+    if ((fp = fopen(nome_file, "r")) == NULL) {
+        perror("Errore di apertura file libri in lettura");
+        return 1;
+    }
 
-    int N;
     if (fscanf(fp, "%d\n", &N) != 1) {
         fclose(fp);
         return 1;
     }
 
-    for (int i = 0; i < N; i++) {
-        char titolo[100], nome[50], cognome[50];
-        int j;
-
+    for (i = 0; i < N; i++) {
+        
+        /* Pulizia manuale stringhe (no string.h) */
         if (fgets(titolo, sizeof(titolo), fp) != NULL) {
             j = 0;
-            while (titolo[j] != '\n' && titolo[j] != '\0') { j++; }
-            titolo[j] = '\0';
+            while (titolo[j] != '\0') {
+                if (titolo[j] == '\n' || titolo[j] == '\r') { titolo[j] = '\0'; break; }
+                j++;
+            }
         }
-
+        
         if (fgets(nome, sizeof(nome), fp) != NULL) {
             j = 0;
-            while (nome[j] != '\n' && nome[j] != '\0') { j++; }
-            nome[j] = '\0';
+            while (nome[j] != '\0') {
+                if (nome[j] == '\n' || nome[j] == '\r') { nome[j] = '\0'; break; }
+                j++;
+            }
         }
 
         if (fgets(cognome, sizeof(cognome), fp) != NULL) {
             j = 0;
-            while (cognome[j] != '\n' && cognome[j] != '\0') { j++; }
-            cognome[j] = '\0';
+            while (cognome[j] != '\0') {
+                if (cognome[j] == '\n' || cognome[j] == '\r') { cognome[j] = '\0'; break; }
+                j++;
+            }
         }
 
-        libri nuovo = (libri)malloc(sizeof(struct libri));
-        if (nuovo != NULL) {
-            if (crea_libro(&(nuovo->l), titolo, nome, cognome) == 0) {
-                nuovo->successivo = *lista;
-                *lista = nuovo;
+        nuovo_nodo = (libri)malloc(sizeof(struct libri));
+        if (nuovo_nodo != NULL) {
+            if (crea_libro(&(nuovo_nodo->l), titolo, nome, cognome) == 0) {
+                /* Inserimento in testa O(1) - Raddrizza l'ordine! */
+                nuovo_nodo->successivo = *lista;
+                *lista = nuovo_nodo;
             } else {
-                free(nuovo);
+                free(nuovo_nodo);
             }
         }
     }

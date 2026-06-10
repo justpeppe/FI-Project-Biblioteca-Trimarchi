@@ -213,14 +213,18 @@ void salva_prestiti_su_file(prestiti lista, FILE *fp) {
     int K = 0;
     prestiti corrente = lista;
     prestiti pila = NULL;
+    prestiti nuovo_nodo;
+    prestiti nodo_estratto;
+    char data[11], titolo_libro[100];
+    libro l_associato;
 
     while (corrente != NULL) {
         K++;
-        prestiti nuovo = (prestiti)malloc(sizeof(struct prestiti));
-        if (nuovo != NULL) {
-            nuovo->p = corrente->p;
-            nuovo->successivo = pila;
-            pila = nuovo;
+        nuovo_nodo = (prestiti)malloc(sizeof(*nuovo_nodo));
+        if (nuovo_nodo != NULL) {
+            nuovo_nodo->p = corrente->p;
+            nuovo_nodo->successivo = pila;
+            pila = nuovo_nodo;
         }
         corrente = corrente->successivo;
     }
@@ -228,51 +232,53 @@ void salva_prestiti_su_file(prestiti lista, FILE *fp) {
     fprintf(fp, "%d\n", K);
 
     while (pila != NULL) {
-        prestiti estratto = pila;
-        char data[20], titolo_libro[100];
-        libro l_associato;
-
-        get_data_del_prestito(estratto->p, data);
-        get_libro_del_prestito(estratto->p, &l_associato);
-        get_titolo(l_associato, titolo_libro);
+        nodo_estratto = pila;
+        
+        get_data_del_prestito(nodo_estratto->p, data);
+        get_libro_del_prestito(nodo_estratto->p, &l_associato);
+        get_titolo(l_associato, titolo_libro); 
         
         fprintf(fp, "%s\n%s\n", data, titolo_libro);
         
         pila = pila->successivo;
-        free(estratto);
+        free(nodo_estratto);
     }
 }
 
 void carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri) {
-    int K, i;
-    char data[20], titolo_libro[100];
+    int K, i, j;
+    char data[11], titolo_libro[100];
     libro l_associato;
+    prestiti nuovo_nodo;
 
     if (fscanf(fp, "%d\n", &K) != 1) return;
 
     for (i = 0; i < K; i++) {
-        int j;
         if (fgets(data, sizeof(data), fp) != NULL) {
             j = 0;
-            while (data[j] != '\n' && data[j] != '\0') { j++; }
-            data[j] = '\0';
+            while (data[j] != '\0') {
+                if (data[j] == '\n' || data[j] == '\r') { data[j] = '\0'; break; }
+                j++;
+            }
         }
         if (fgets(titolo_libro, sizeof(titolo_libro), fp) != NULL) {
             j = 0;
-            while (titolo_libro[j] != '\n' && titolo_libro[j] != '\0') { j++; }
-            titolo_libro[j] = '\0';
+            while (titolo_libro[j] != '\0') {
+                if (titolo_libro[j] == '\n' || titolo_libro[j] == '\r') { titolo_libro[j] = '\0'; break; }
+                j++;
+            }
         }
         
         l_associato = cerca_libro_nella_lista(lista_libri, titolo_libro);
         
         if (l_associato != NULL) {
-            prestiti nuovo = (prestiti)malloc(sizeof(struct prestiti));
-            if (nuovo != NULL) {
-                if (crea_prestito(&(nuovo->p), data, l_associato) == 0) {
-                    nuovo->successivo = *lista;
-                    *lista = nuovo;
+            nuovo_nodo = (prestiti)malloc(sizeof(*nuovo_nodo));
+            if (nuovo_nodo != NULL) {
+                if (crea_prestito(&(nuovo_nodo->p), data, l_associato) == 0) {
+                    nuovo_nodo->successivo = *lista;
+                    *lista = nuovo_nodo;
                 } else {
-                    free(nuovo);
+                    free(nuovo_nodo);
                 }
             }
         }

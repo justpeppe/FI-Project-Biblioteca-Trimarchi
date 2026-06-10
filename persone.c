@@ -267,20 +267,27 @@ persona trova_persona_per_libro(persone lista, libro l)
 }
 
 int salva_persone_su_file(persone lista, const char *nome_file) {
-    FILE *fp = fopen(nome_file, "w");
-    if (fp == NULL) return 1;
-
+    FILE *fp;
     int N = 0;
     persone corrente = lista;
     persone pila = NULL;
+    persone nuovo_nodo;
+    persone nodo_estratto;
+    char nome[50], cognome[50];
+    prestiti *p_lista;
+
+    if ((fp = fopen(nome_file, "w")) == NULL) {
+        perror("Errore di apertura file persone in scrittura");
+        return 1;
+    }
 
     while (corrente != NULL) {
         N++;
-        persone nuovo = (persone)malloc(sizeof(struct persone));
-        if (nuovo != NULL) {
-            nuovo->p = corrente->p;
-            nuovo->successivo = pila;
-            pila = nuovo;
+        nuovo_nodo = (persone)malloc(sizeof(*nuovo_nodo));
+        if (nuovo_nodo != NULL) {
+            nuovo_nodo->p = corrente->p;
+            nuovo_nodo->successivo = pila;
+            pila = nuovo_nodo;
         }
         corrente = corrente->successivo;
     }
@@ -288,68 +295,69 @@ int salva_persone_su_file(persone lista, const char *nome_file) {
     fprintf(fp, "%d\n", N);
 
     while (pila != NULL) {
-        persone estratto = pila;
-        char nome[50], cognome[50];
-        prestiti *p_lista;
+        nodo_estratto = pila;
         
-        get_nome_persona(estratto->p, nome);
-        get_cognome_persona(estratto->p, cognome);
+        get_nome_persona(nodo_estratto->p, nome);
+        get_cognome_persona(nodo_estratto->p, cognome);
         
         fprintf(fp, "%s\n%s\n", nome, cognome);
         
-        p_lista = get_prestiti_della_persona(estratto->p);
-        salva_prestiti_su_file(*p_lista, fp);
+        p_lista = get_prestiti_della_persona(nodo_estratto->p);
+        salva_prestiti_su_file(*p_lista, fp); 
         
         pila = pila->successivo;
-        free(estratto);
+        free(nodo_estratto);
     }
-    
+
     fclose(fp);
     return 0;
 }
 
 int carica_persone_da_file(persone *lista, const char *nome_file, libri lista_libri) {
-    FILE *fp = fopen(nome_file, "r");
-    if (fp == NULL) return 1;
+    FILE *fp;
+    int N, i, j;
+    char nome[50], cognome[50];
+    persone nuovo_nodo;
+    prestiti *p_lista;
 
-    distruggi_lista_persone(lista);
-    crea_lista_persone(lista);
+    if ((fp = fopen(nome_file, "r")) == NULL) {
+        perror("Errore di apertura file persone in lettura");
+        return 1;
+    }
 
-    int N;
     if (fscanf(fp, "%d\n", &N) != 1) {
         fclose(fp);
         return 1;
     }
 
-    for (int i = 0; i < N; i++) {
-        char nome[50], cognome[50];
-        int j;
-        prestiti *p_lista;
-        
+    for (i = 0; i < N; i++) {
         if (fgets(nome, sizeof(nome), fp) != NULL) {
             j = 0;
-            while (nome[j] != '\n' && nome[j] != '\0') { j++; }
-            nome[j] = '\0';
+            while (nome[j] != '\0') {
+                if (nome[j] == '\n' || nome[j] == '\r') { nome[j] = '\0'; break; }
+                j++;
+            }
         }
-        
         if (fgets(cognome, sizeof(cognome), fp) != NULL) {
             j = 0;
-            while (cognome[j] != '\n' && cognome[j] != '\0') { j++; }
-            cognome[j] = '\0';
+            while (cognome[j] != '\0') {
+                if (cognome[j] == '\n' || cognome[j] == '\r') { cognome[j] = '\0'; break; }
+                j++;
+            }
         }
-
-        persone nuovo = (persone)malloc(sizeof(struct persone));
-        if (nuovo != NULL) {
-            if (crea_persona(&(nuovo->p), nome, cognome) == 0) {
+        
+        nuovo_nodo = (persone)malloc(sizeof(*nuovo_nodo));
+        if (nuovo_nodo != NULL) {
+            if (crea_persona(&(nuovo_nodo->p), nome, cognome) == 0) {
                 
-                p_lista = get_prestiti_della_persona(nuovo->p);
+                p_lista = get_prestiti_della_persona(nuovo_nodo->p);
                 crea_lista_prestiti(p_lista);
-                carica_prestiti_da_file(p_lista, fp, lista_libri);
+                carica_prestiti_da_file(p_lista, fp, lista_libri); 
                 
-                nuovo->successivo = *lista;
-                *lista = nuovo;
+                nuovo_nodo->successivo = *lista;
+                *lista = nuovo_nodo;
             } else {
-                free(nuovo);
+                free(nuovo_nodo);
             }
         }
     }
