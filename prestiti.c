@@ -284,8 +284,7 @@ int carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri)
 
     for (int i = 0; i < N; i = i + 1)
     {
-        // Leggo la riga contenente la data del prestito con 15 invece che 11 per consumare anche \n
-        // di troppo che c'è nel file. 
+        
         fgets(data, 15, fp);
 
         // Tolgo l'invio ('\n') alla fine della stringa usando un ciclo for
