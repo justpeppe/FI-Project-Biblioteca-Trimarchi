@@ -266,102 +266,158 @@ persona trova_persona_per_libro(persone lista, libro l)
     return NULL;
 }
 
-int salva_persone_su_file(persone lista, const char *nome_file) {
+int salva_persone_su_file(persone lista, const char *nome_file)
+{
     FILE *fp;
     int N = 0;
     persone corrente = lista;
-    persone pila = NULL;
-    persone nuovo_nodo;
-    persone nodo_estratto;
-    char nome[50], cognome[50];
-    prestiti *p_lista;
+    persone pila_appoggio = NULL;
+    persone nodo_temp;
 
-    if ((fp = fopen(nome_file, "w")) == NULL) {
-        perror("Errore di apertura file persone in scrittura");
+    // Apro il file in scrittura
+    fp = fopen(nome_file, "w");
+    if (fp == NULL)
+    {
+        printf("Errore: impossibile creare il file di salvataggio.\n");
         return 1;
     }
 
-    while (corrente != NULL) {
-        N++;
-        nuovo_nodo = (persone)malloc(sizeof(*nuovo_nodo));
-        if (nuovo_nodo != NULL) {
-            nuovo_nodo->p = corrente->p;
-            nuovo_nodo->successivo = pila;
-            pila = nuovo_nodo;
+    // Scorro la lista originale, conto le persone e creo la pila d'appoggio
+    while (corrente != NULL)
+    {
+        N = N + 1;
+
+        nodo_temp = (persone)malloc(sizeof(struct persone));
+        if (nodo_temp != NULL)
+        {
+            nodo_temp->p = corrente->p;
+
+            // Mettendo pila_appoggio = nodo_temp al prossimo giro il successivo diventando
+            // la pila_appoggio ho creato il meccanismo di pila LIFO
+            nodo_temp->successivo = pila_appoggio;
+            pila_appoggio = nodo_temp;
         }
+
         corrente = corrente->successivo;
     }
 
+    // Scrivo in cima il numero totale di elementi sul file
     fprintf(fp, "%d\n", N);
 
-    while (pila != NULL) {
-        nodo_estratto = pila;
+    char nome[50];
+    char cognome[50];
+    persone da_cancellare;
+    prestiti *p_lista;
+
+    // Svuoto la pila e scrivo su file
+    while (pila_appoggio != NULL)
+    {
+
+        get_nome_persona(pila_appoggio->p, nome);
+        get_cognome_persona(pila_appoggio->p, cognome);
+
+        // Scrivo ogni valore su una riga separata
+        fprintf(fp, "%s\n", nome);
+        fprintf(fp, "%s\n", cognome);
         
-        get_nome_persona(nodo_estratto->p, nome);
-        get_cognome_persona(nodo_estratto->p, cognome);
-        
-        fprintf(fp, "%s\n%s\n", nome, cognome);
-        
-        p_lista = get_prestiti_della_persona(nodo_estratto->p);
+        p_lista = get_prestiti_della_persona(pila_appoggio->p);
         salva_prestiti_su_file(*p_lista, fp); 
-        
-        pila = pila->successivo;
-        free(nodo_estratto);
+
+        // Salvo il nodo attuale cosi poi lo libero
+        da_cancellare = pila_appoggio;
+
+        // Continuo lo scorrimento
+        pila_appoggio = pila_appoggio->successivo;
+
+        free(da_cancellare);
     }
 
+    // Chiudo il file
     fclose(fp);
     return 0;
 }
 
-int carica_persone_da_file(persone *lista, const char *nome_file, libri lista_libri) {
+int carica_persone_da_file(persone *lista, const char *nome_file, libri lista_libri)
+{
     FILE *fp;
-    int N, i, j;
-    char nome[50], cognome[50];
-    persone nuovo_nodo;
-    prestiti *p_lista;
+    int N;
 
-    if ((fp = fopen(nome_file, "r")) == NULL) {
-        perror("Errore di apertura file persone in lettura");
+    // Apro il file in lettura
+    fp = fopen(nome_file, "r");
+    if (fp == NULL)
+    {
+        printf("Errore: impossibile aprire il file di caricamento.\n");
         return 1;
     }
 
-    if (fscanf(fp, "%d\n", &N) != 1) {
+    // Leggo la prima riga per sapere il numero di elementi da caricare
+    if (fscanf(fp, "%d\n", &N) != 1)
+    {
         fclose(fp);
         return 1;
     }
 
-    for (i = 0; i < N; i++) {
-        if (fgets(nome, sizeof(nome), fp) != NULL) {
-            j = 0;
-            while (nome[j] != '\0') {
-                if (nome[j] == '\n' || nome[j] == '\r') { nome[j] = '\0'; break; }
-                j++;
+    char nome[50];
+    char cognome[50];
+    persone nuova_persona;
+    prestiti *p_lista;
+
+    for (int i = 0; i < N; i = i + 1)
+    {
+
+        fgets(nome, 50, fp);
+        // Tolgo l'invio ('\n') alla fine della stringa usando un ciclo for
+        for (int j = 0; nome[j] != '\0'; j = j + 1)
+        {
+            if (nome[j] == '\n')
+            {
+                nome[j] = '\0';
+                break;
             }
         }
-        if (fgets(cognome, sizeof(cognome), fp) != NULL) {
-            j = 0;
-            while (cognome[j] != '\0') {
-                if (cognome[j] == '\n' || cognome[j] == '\r') { cognome[j] = '\0'; break; }
-                j++;
+
+        fgets(cognome, 50, fp);
+        for (int j = 0; cognome[j] != '\0'; j = j + 1)
+        {
+            if (cognome[j] == '\n')
+            {
+                cognome[j] = '\0';
+                break;
             }
         }
-        
-        nuovo_nodo = (persone)malloc(sizeof(*nuovo_nodo));
-        if (nuovo_nodo != NULL) {
-            if (crea_persona(&(nuovo_nodo->p), nome, cognome) == 0) {
-                
-                p_lista = get_prestiti_della_persona(nuovo_nodo->p);
+
+        nuova_persona = (persone)malloc(sizeof(struct persone));
+
+        if (nuova_persona != NULL)
+        {
+
+            if (crea_persona(&(nuova_persona->p), nome, cognome) == 0)
+            {
+                p_lista = get_prestiti_della_persona(nuova_persona->p);
                 crea_lista_prestiti(p_lista);
                 carica_prestiti_da_file(p_lista, fp, lista_libri); 
                 
-                nuovo_nodo->successivo = *lista;
-                *lista = nuovo_nodo;
-            } else {
-                free(nuovo_nodo);
+                // Inserimento in testa, più veloce di usare inserisci_persona perchè
+                // con la pila l'elemento dopo sarà sempre più ""piccolo""" di quello attuale
+                nuova_persona->successivo = *lista;
+                *lista = nuova_persona;
             }
+            else
+            {
+                // Se la creazione fallisce devo pulire la memoria allocata
+                free(nuova_persona);
+                fclose(fp);
+                return 1;
+            }
+        }
+        else
+        {
+            fclose(fp);
+            return 1;
         }
     }
 
+    // Chiudo il file
     fclose(fp);
     return 0;
 }

@@ -209,78 +209,133 @@ int stampa_lista_prestiti(prestiti lista)
     return 0;
 }
 
-void salva_prestiti_su_file(prestiti lista, FILE *fp) {
-    int K = 0;
+int salva_prestiti_su_file(prestiti lista, FILE *fp)
+{
+    int N = 0;
     prestiti corrente = lista;
-    prestiti pila = NULL;
-    prestiti nuovo_nodo;
-    prestiti nodo_estratto;
-    char data[11], titolo_libro[100];
-    libro l_associato;
+    prestiti pila_appoggio = NULL;
+    prestiti nodo_temp;
 
-    while (corrente != NULL) {
-        K++;
-        nuovo_nodo = (prestiti)malloc(sizeof(*nuovo_nodo));
-        if (nuovo_nodo != NULL) {
-            nuovo_nodo->p = corrente->p;
-            nuovo_nodo->successivo = pila;
-            pila = nuovo_nodo;
+    // Scorro la lista originale, conto i prestiti e creo la pila d'appoggio
+    while (corrente != NULL)
+    {
+        N = N + 1;
+
+        nodo_temp = (prestiti)malloc(sizeof(struct prestiti));
+        if (nodo_temp != NULL)
+        {
+            nodo_temp->p = corrente->p;
+
+            // Mettendo pila_appoggio = nodo_temp al prossimo giro il successivo diventando
+            // la pila_appoggio ho creato il meccanismo di pila LIFO
+            nodo_temp->successivo = pila_appoggio;
+            pila_appoggio = nodo_temp;
         }
+
         corrente = corrente->successivo;
     }
 
-    fprintf(fp, "%d\n", K);
+    // Scrivo in cima il numero totale di elementi sul file
+    fprintf(fp, "%d\n", N);
 
-    while (pila != NULL) {
-        nodo_estratto = pila;
-        
-        get_data_del_prestito(nodo_estratto->p, data);
-        get_libro_del_prestito(nodo_estratto->p, &l_associato);
+    char data[11];
+    char titolo_libro[100];
+    libro l_associato;
+    prestiti da_cancellare;
+
+    // Svuoto la pila e scrivo su file
+    while (pila_appoggio != NULL)
+    {
+
+        get_data_del_prestito(pila_appoggio->p, data);
+        get_libro_del_prestito(pila_appoggio->p, &l_associato);
         get_titolo(l_associato, titolo_libro); 
-        
-        fprintf(fp, "%s\n%s\n", data, titolo_libro);
-        
-        pila = pila->successivo;
-        free(nodo_estratto);
+
+        // Scrivo ogni valore su una riga separata
+        fprintf(fp, "%s\n", data);
+        fprintf(fp, "%s\n", titolo_libro);
+
+        // Salvo il nodo attuale cosi poi lo libero
+        da_cancellare = pila_appoggio;
+
+        // Continuo lo scorrimento
+        pila_appoggio = pila_appoggio->successivo;
+
+        free(da_cancellare);
     }
+
+    return 0;
 }
 
-void carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri) {
-    int K, i, j;
-    char data[11], titolo_libro[100];
+int carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri)
+{
+    int N;
+
+    // Leggo la prima riga per sapere il numero di elementi da caricare
+    if (fscanf(fp, "%d\n", &N) != 1)
+    {
+        return 1;
+    }
+
+    char data[11];
+    char titolo_libro[100];
     libro l_associato;
-    prestiti nuovo_nodo;
+    prestiti nuovo_prestito;
 
-    if (fscanf(fp, "%d\n", &K) != 1) return;
+    for (int i = 0; i < N; i = i + 1)
+    {
 
-    for (i = 0; i < K; i++) {
-        if (fgets(data, sizeof(data), fp) != NULL) {
-            j = 0;
-            while (data[j] != '\0') {
-                if (data[j] == '\n' || data[j] == '\r') { data[j] = '\0'; break; }
-                j++;
+        fgets(data, 11, fp);
+
+        // Tolgo l'invio ('\n') alla fine della stringa usando un ciclo for
+        for (int j = 0; data[j] != '\0'; j = j + 1)
+        {
+            if (data[j] == '\n')
+            {
+                data[j] = '\0';
+                break;
             }
         }
-        if (fgets(titolo_libro, sizeof(titolo_libro), fp) != NULL) {
-            j = 0;
-            while (titolo_libro[j] != '\0') {
-                if (titolo_libro[j] == '\n' || titolo_libro[j] == '\r') { titolo_libro[j] = '\0'; break; }
-                j++;
+
+        fgets(titolo_libro, 100, fp);
+        for (int j = 0; titolo_libro[j] != '\0'; j = j + 1)
+        {
+            if (titolo_libro[j] == '\n')
+            {
+                titolo_libro[j] = '\0';
+                break;
             }
         }
-        
+
         l_associato = cerca_libro_nella_lista(lista_libri, titolo_libro);
-        
-        if (l_associato != NULL) {
-            nuovo_nodo = (prestiti)malloc(sizeof(*nuovo_nodo));
-            if (nuovo_nodo != NULL) {
-                if (crea_prestito(&(nuovo_nodo->p), data, l_associato) == 0) {
-                    nuovo_nodo->successivo = *lista;
-                    *lista = nuovo_nodo;
-                } else {
-                    free(nuovo_nodo);
+
+        if (l_associato != NULL)
+        {
+            nuovo_prestito = (prestiti)malloc(sizeof(struct prestiti));
+
+            if (nuovo_prestito != NULL)
+            {
+
+                if (crea_prestito(&(nuovo_prestito->p), data, l_associato) == 0)
+                {
+                    // Inserimento in testa, più veloce di usare inserisci_prestito perchè
+                    // con la pila l'elemento dopo sarà sempre più ""piccolo""" di quello attuale
+                    nuovo_prestito->successivo = *lista;
+                    *lista = nuovo_prestito;
                 }
+                else
+                {
+                    // Se la creazione fallisce devo pulire la memoria allocata
+                    free(nuovo_prestito);
+                    return 1;
+                }
+            }
+            else
+            {
+                return 1;
             }
         }
     }
+
+    return 0;
 }

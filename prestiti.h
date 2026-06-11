@@ -28,8 +28,8 @@ int distruggi_lista_prestiti(prestiti *lista);
 
 int stampa_lista_prestiti(prestiti lista);
 
-void salva_prestiti_su_file(prestiti lista, FILE *fp);
+int salva_prestiti_su_file(prestiti lista, FILE *fp);
 
-void carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri);
+int carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri);
 
 #endif
