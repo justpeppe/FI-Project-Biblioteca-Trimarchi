@@ -277,15 +277,16 @@ int carica_prestiti_da_file(prestiti *lista, FILE *fp, libri lista_libri)
         return 1;
     }
 
-    char data[11];
+    char data[15];
     char titolo_libro[100];
     libro l_associato;
     prestiti nuovo_prestito;
 
     for (int i = 0; i < N; i = i + 1)
     {
-
-        fgets(data, 11, fp);
+        // Leggo la riga contenente la data del prestito con 15 invece che 11 per consumare anche \n
+        // di troppo che c'è nel file. 
+        fgets(data, 15, fp);
 
         // Tolgo l'invio ('\n') alla fine della stringa usando un ciclo for
         for (int j = 0; data[j] != '\0'; j = j + 1)
